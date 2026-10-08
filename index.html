@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <script>
+    (() => {
+      let preference = 'system';
+      try { preference = localStorage.getItem('chart-tricks-theme') || 'system'; } catch {}
+      const theme = preference === 'light' || preference === 'dark'
+        ? preference : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#101820' : '#ffffff';
+    })();
+  </script>
+  <meta name="description" content="Same data, different impression. Explore axis ranges, mean versus median, and outlier visibility in a small interactive chart experiment." />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <title>Chart Tricks · Same data, different impression</title>
+</head>
+<body>
+  <a class="skip-link" href="#comparison">Skip to the comparison</a>
+  <main class="app">
+    <header class="topbar">
+      <h1>Chart <span>Tricks</span></h1>
+      <div class="dataset-control">
+        <label for="dataset">Dataset</label>
+        <select id="dataset" name="dataset"></select>
+        <span class="provenance">Synthetic data</span>
+      </div>
+      <div class="actions">
+        <label class="theme-control" for="theme">Theme
+          <select id="theme" name="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        </label>
+        <button id="reset" type="button" title="Restore this dataset's comparison preset">Reset</button>
+        <button id="export" class="primary" type="button">Export image</button>
+      </div>
+    </header>
+    <p class="pattern" id="pattern"></p>
+    <section class="comparison" id="comparison" aria-label="Reference and modified comparison">
+      <article class="chart-panel">
+        <p class="impression" id="reference-headline"></p>
+        <div class="chart-heading"><h2>Reference</h2><span class="fixed-tag">Fixed scale</span></div>
+        <p class="axis-note" id="reference-range"></p>
+        <div class="chart" id="reference-chart"></div>
+        <p class="point-count" id="reference-count"></p>
+      </article>
+      <article class="chart-panel">
+        <p class="impression" id="modified-headline"></p>
+        <div class="chart-heading"><h2>Modified</h2><span class="axis-tag" id="axis-notice"></span></div>
+        <p class="axis-note" id="modified-range"></p>
+        <div class="chart" id="modified-chart"></div>
+        <p class="point-count" id="modified-count"></p>
+        <p class="visibility-note" id="visibility-note" hidden></p>
+      </article>
+    </section>
+    <section class="controls" aria-labelledby="controls-title">
+      <div class="control-row">
+        <h2 id="controls-title">Modified Y-axis <span id="axis-unit"></span></h2>
+        <label class="bound-control" for="lower">Lower <input id="lower" name="lower" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label>
+        <label class="bound-control" for="upper">Upper <input id="upper" name="upper" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label>
+        <fieldset class="statistic-control">
+          <legend>Statistic in both charts</legend>
+          <div class="segmented">
+            <label><input name="statistic" type="radio" value="mean" /><span>Mean</span></label>
+            <label><input name="statistic" type="radio" value="median" checked /><span>Median</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="focus-row">
+        <label for="focus">Scale focus <output id="focus-value" for="focus"></output></label>
+        <span class="focus-end">Full range</span>
+        <input id="focus" name="focus" type="range" min="0" max="100" value="100" aria-describedby="focus-help" />
+        <span class="focus-end">Tighter range</span>
+      </div>
+      <span class="sr-only" id="focus-help">Adjusts the modified bounds between this dataset's full-range and tighter-range presets. Numeric fields allow custom bounds.</span>
+      <p id="range-error" class="range-error" role="status" hidden></p>
+    </section>
+    <section class="summary" aria-label="Visibility and all-data statistics">
+      <div class="outlier-control">
+        <label for="hide-outliers"><input id="hide-outliers" name="hide-outliers" type="checkbox" />Hide outliers</label>
+        <span id="outlier-count"></span>
+      </div>
+      <div class="statistics"><div><span>Mean</span><strong id="mean-value"></strong></div><div><span>Median</span><strong id="median-value"></strong></div><p id="all-values"></p></div>
+    </section>
+    <section class="explanation" aria-label="What changed" aria-live="polite" aria-atomic="true">
+      <p id="explanation"></p><p class="statistic-explanation" id="statistic-explanation"></p>
+    </section>
+    <p id="export-status" class="export-status" role="status" hidden></p>
+    <details class="source">
+      <summary>Source data &amp; statistical rules</summary>
+      <div class="source-content">
+        <div><h2>The unchanged data</h2><p>These small datasets were written for this demonstration. They do not describe a real cafe, shop or survey.</p><table><caption id="source-caption"></caption><thead><tr><th scope="col" id="source-label">Observation</th><th scope="col" id="source-unit">Value</th><th scope="col">Outlier</th></tr></thead><tbody id="source-data"></tbody></table></div>
+        <div class="rules"><h2>How the statistics work</h2><p>Mean adds all values and divides by the count. Median is the middle sorted value, or the average of the two middle values.</p><p>Outliers fall strictly below Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR. Q1 and Q3 are medians of the lower and upper halves. For odd counts, the middle value is excluded from both halves.</p><p id="quartile-values"></p><p>Hiding a point changes only its visibility. Bounds can clip points. Neither operation changes the data, quartiles, mean or median.</p><p>All scales are linear. Only monthly revenue points are connected; orders and survey groups have no implied time trend.</p></div>
+      </div>
+    </details>
+    <footer>Same values. Different view. <span>Made to explore, not to prove a claim.</span></footer>
+  </main>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

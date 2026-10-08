@@ -1,0 +1,19 @@
+{
+  "name": "chart-tricks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.18.0" },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "package": "python3 scripts/package_release.py"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "8.3.3"
+  }
+}

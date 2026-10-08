@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+release/ export-ignore
+design/ export-ignore
+agent-docs/ export-ignore
+.impeccable/ export-ignore
