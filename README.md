@@ -2,7 +2,7 @@
 
 **Same data. Different story.**
 
-Read a chart, choose your first impression, then reveal how a small presentation change alters the picture. Three experiments teach zooming, hiding a point, and choosing an average. Explore freely when you want to make your own comparison.
+Read a chart, choose your first impression, then reveal how its presentation changes the picture. Three experiments teach zooming, hiding a point, and choosing an average. Explore freely when you want to make your own comparison.
 
 Version 1.1.0 adds guided discovery, focused controls and a phone layout that keeps the chart beside each change.
 
@@ -21,7 +21,7 @@ Version 1.1.0 adds guided discovery, focused controls and a phone layout that ke
 2. Select **Reveal the scale trick**. The rise looks steeper, but January to June still grows by **7.3%**.
 3. Continue to **The missing point** and **The average**. Each changes one thing while the source values stay fixed.
 
-There is no score. You can reveal without selecting an answer, or enter **Explore freely** immediately. The Reference keeps its original range, every value and a median guide. On phones, Reference and Modified share a chart slot; the active chart and facts stay beside the control.
+There is no score. You can reveal without selecting an answer, or enter **Explore freely** immediately. The Reference keeps its original range, every value and a median guide. On phones, Reference and Modified share a chart slot. The active chart and facts stay beside the control.
 
 ## Change the view
 
@@ -106,7 +106,7 @@ The values also appear in [`src/model.ts`](src/model.ts) and the app's **Behind 
 
 Zoom moves between the full reference range and the tighter preset. Custom bounds accept finite values from −1,000,000 to 1,000,000, with a minimum span of 0.01.
 
-Invalid fields keep the last valid chart and disable export until you correct them. Changing the dataset starts its preset. Reloading starts the first discovery question and keeps only the saved theme preference.
+Invalid fields keep the last valid chart and disable export until you enter valid bounds. Changing the dataset starts its preset. Reloading starts the first discovery question and keeps only the saved theme preference.
 
 System follows the browser's appearance setting. Reset preserves the current theme. Storage restrictions do not prevent manual theme selection.
 
@@ -116,7 +116,7 @@ System follows the browser's appearance setting. Reset preserves the current the
 
 The 19 behavior checks cover statistics, quartiles, visibility, scale transformations, range validation, reset, themes, one-factor discovery, compact-chart labels and export content. Theme checks also cover chart contrast and identical data, statistics, and coordinates.
 
-Chromium checks cover the production build at desktop and 390/320-pixel phone sizes, keyboard controls, reset, invalid bounds, live System appearance, saved themes and actual PNG downloads. Independent checks verify 219 data and presentation cases. Pixel checks verify downloaded point positions, clipped triangles and hidden-point absence. See [the local discovery verification record](docs/verification.md) for evidence and limits.
+Chromium checks cover the production build at desktop and 390/320-pixel phone sizes. They cover keyboard controls, reset, invalid bounds, live System appearance, saved themes and actual PNG downloads. Independent checks cover 219 data and presentation cases. Pixel checks cover downloaded point positions, clipped triangles and hidden-point absence. See [the discovery verification record](docs/verification.md) for evidence and limits.
 
 Physical phones, Safari, Firefox and screen reader sessions remain untested. The available Android emulator was in use by another session, so it was not driven. iOS Simulator requires macOS and was unavailable. Browser download permissions can affect file delivery. These small examples illustrate presentation choices, not inference, uncertainty, or causation. Other quartile conventions can produce different outlier fences. The app supports only linear scales.
 
