@@ -6,8 +6,8 @@ export const INK = '#17212b';
 export const ORANGE = '#c43b0d';
 export const escape = (text: string) => text.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]!);
 
-export function geometry(width: number, range: Range, count: number) {
-  const left = 72, right = width - 20, top = 28, bottom = CHART_HEIGHT - 74;
+export function geometry(width: number, range: Range, count: number, height = CHART_HEIGHT) {
+  const left = 72, right = width - 20, top = height < 260 ? 20 : 28, bottom = height - 74;
   return {
     left, right, top, bottom,
     x: (index: number) => count === 1 ? (left + right) / 2 : left + index * (right - left) / (count - 1),
@@ -15,16 +15,17 @@ export function geometry(width: number, range: Range, count: number) {
   };
 }
 
-export function chartBody(dataset: Dataset, current: View, statistic: Statistic, width: number, modified: boolean, id: string, theme: Theme = 'light'): string {
+export function chartBody(dataset: Dataset, current: View, statistic: Statistic | null, width: number, modified: boolean, id: string, theme: Theme = 'light', height = CHART_HEIGHT): string {
   const palette = PALETTES[theme];
   const { ink, muted, orange, background } = palette;
   const color = modified ? orange : ink;
-  const g = geometry(width, current.range, dataset.observations.length);
+  const g = geometry(width, current.range, dataset.observations.length, height);
   const clipId = `clip-${id}`;
-  const selected = current.stats[statistic];
-  const guideShown = selected >= current.range.lower && selected <= current.range.upper;
+  const selected = statistic ? current.stats[statistic] : null;
+  const guideShown = selected !== null && selected >= current.range.lower && selected <= current.range.upper;
   const title = `${modified ? 'Modified' : 'Reference'}: ${dataset.name}`;
-  const description = `${counts(current)}. Linear ${dataset.unit} scale from ${bound(current.range.lower)} to ${bound(current.range.upper)}. ${statistic}: ${amount(selected, dataset.unit)}, calculated using all ${dataset.observations.length} values. Source: ${dataset.observations.map(point => `${point.label}: ${amount(point.value, dataset.unit)}`).join('; ')}.`;
+  const guideDescription = statistic && selected !== null ? `${statistic}: ${amount(selected, dataset.unit)}, calculated using all ${dataset.observations.length} values. ` : '';
+  const description = `${counts(current)}. Linear ${dataset.unit} scale from ${bound(current.range.lower)} to ${bound(current.range.upper)}. ${guideDescription}Source: ${dataset.observations.map(point => `${point.label}: ${amount(point.value, dataset.unit)}`).join('; ')}.`;
   const elements: string[] = [
     `<title id="title-${id}">${escape(title)}</title><desc id="desc-${id}">${escape(description)}</desc>`,
     `<defs><clipPath id="${clipId}"><rect x="${g.left - 5}" y="${g.top - 5}" width="${g.right - g.left + 10}" height="${g.bottom - g.top + 10}"/></clipPath></defs>`,
@@ -42,12 +43,13 @@ export function chartBody(dataset: Dataset, current: View, statistic: Statistic,
     elements.push(`<text x="${x}" y="${g.bottom + 24}" text-anchor="middle" font-size="13" fill="${muted}">${escape(point.label)}</text>`);
   });
   elements.push(`<path d="M${g.left} ${g.top}V${g.bottom}H${g.right}" fill="none" stroke="${palette.axis}" stroke-width="1.2"/>`);
-  if (guideShown) {
+  if (guideShown && selected !== null) {
     const y = g.y(selected);
     elements.push(`<line data-statistic="${statistic}" data-value="${selected}" x1="${g.left}" y1="${y}" x2="${g.right}" y2="${y}" stroke="${muted}" stroke-dasharray="5 4" stroke-width="1.2"/>`);
-    elements.push(`<text x="${g.right - 3}" y="${Math.min(g.bottom - 5, y + 18)}" text-anchor="end" font-size="12" fill="${muted}" stroke="${background}" stroke-width="4" paint-order="stroke">${statistic === 'mean' ? 'Mean' : 'Median'} ${escape(amount(selected, dataset.unit))}</text>`);
-  } else {
-    elements.push(`<text x="${(g.left + g.right) / 2}" y="${CHART_HEIGHT - 8}" text-anchor="middle" font-size="12" fill="${orange}">${statistic === 'mean' ? 'Mean' : 'Median'} ${escape(amount(selected, dataset.unit))} is ${selected > current.range.upper ? 'above' : 'below'} this range</text>`);
+    const compact = width < 400;
+    elements.push(`<text x="${compact ? width / 2 : g.right - 3}" y="${compact ? height - 8 : Math.min(g.bottom - 5, y + 18)}" text-anchor="${compact ? 'middle' : 'end'}" font-size="12" fill="${muted}" stroke="${background}" stroke-width="4" paint-order="stroke">${statistic === 'mean' ? 'Mean' : 'Median'} ${escape(amount(selected, dataset.unit))}</text>`);
+  } else if (selected !== null) {
+    elements.push(`<text x="${width / 2}" y="${height - 8}" text-anchor="middle" font-size="${width < 400 ? 10 : 12}" fill="${orange}">${statistic === 'mean' ? 'Mean' : 'Median'} ${escape(amount(selected, dataset.unit))} is ${selected > current.range.upper ? 'above' : 'below'} this range</text>`);
   }
   if (dataset.chart === 'line') {
     let path = '', connected = false;
@@ -69,15 +71,16 @@ export function chartBody(dataset: Dataset, current: View, statistic: Statistic,
     }
   });
   if (!current.shown) {
-    elements.push(`<rect x="${g.left + 5}" y="${g.top + 80}" width="${g.right - g.left - 10}" height="60" fill="${background}"/>`);
-    elements.push(`<text x="${(g.left + g.right) / 2}" y="${g.top + 103}" text-anchor="middle" font-size="14" fill="${ink}">No points in this range</text>`);
-    elements.push(`<text x="${(g.left + g.right) / 2}" y="${g.top + 123}" text-anchor="middle" font-size="12" fill="${muted}">The reference retains every value.</text>`);
+    const centerY = (g.top + g.bottom) / 2;
+    elements.push(`<rect x="${g.left + 5}" y="${centerY - 20}" width="${g.right - g.left - 10}" height="50" fill="${background}"/>`);
+    elements.push(`<text x="${(g.left + g.right) / 2}" y="${centerY}" text-anchor="middle" font-size="${width < 400 ? 11 : 14}" fill="${ink}">No points in this range</text>`);
+    elements.push(`<text x="${(g.left + g.right) / 2}" y="${centerY + 18}" text-anchor="middle" font-size="${width < 400 ? 9 : 12}" fill="${muted}">The reference retains every value.</text>`);
   }
   elements.push(`<text x="${(g.left + g.right) / 2}" y="${g.bottom + 48}" text-anchor="middle" font-size="13" fill="${muted}">${escape(dataset.xLabel)}</text>`);
   return elements.join('');
 }
 
-export function chartSvg(dataset: Dataset, current: View, statistic: Statistic, width: number, modified: boolean, theme: Theme = 'light'): string {
+export function chartSvg(dataset: Dataset, current: View, statistic: Statistic | null, width: number, modified: boolean, theme: Theme = 'light', height = CHART_HEIGHT): string {
   const id = `${modified ? 'modified' : 'reference'}-${dataset.id}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CHART_HEIGHT}" viewBox="0 0 ${width} ${CHART_HEIGHT}" role="img" aria-labelledby="title-${id} desc-${id}" font-family="Arial,Helvetica,sans-serif">${chartBody(dataset, current, statistic, width, modified, id, theme)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title-${id} desc-${id}" font-family="Arial,Helvetica,sans-serif">${chartBody(dataset, current, statistic, width, modified, id, theme, height)}</svg>`;
 }

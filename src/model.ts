@@ -160,8 +160,10 @@ export function explanation(state: State) {
     headline = 'Differences look smaller.';
     message = 'A wider range compresses the visible differences. It adds scale context, but makes small changes harder to see.';
   } else if (state.lower === dataset.reference.lower && state.upper === dataset.reference.upper) {
-    headline = 'The same view, for now.';
-    message = 'Both charts use the same range and show every point. Adjust the scale to explore how the impression changes.';
+    headline = state.statistic === 'mean' ? 'A different idea of average.' : 'The same view, for now.';
+    message = state.statistic === 'mean'
+      ? `The points and axes match. Only the guide changes: Reference uses the median (${amount(current.stats.median, dataset.unit)}); Modified uses the mean (${amount(current.stats.mean, dataset.unit)}). Both calculations include every value.`
+      : 'Both charts use the same range and show every point. Adjust the scale to explore how the impression changes.';
   }
   let statisticMessage = state.statistic === 'mean'
     ? `Mean: ${amount(current.stats.mean, dataset.unit)}. It adds all values and divides by ${dataset.observations.length}.`

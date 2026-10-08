@@ -41,7 +41,7 @@ export function comparisonSvg(state: State, theme: Theme = 'light'): string {
   for (const [current, x, isModified, id] of [
     [reference, margin, false, 'export-reference'], [modified, rightX, true, 'export-modified'],
   ] as const) {
-    pieces.push(`<g transform="translate(${x} 282)">${chartBody(dataset, current, state.statistic, chartWidth, isModified, id, theme)}</g>`);
+    pieces.push(`<g transform="translate(${x} 282)">${chartBody(dataset, current, isModified ? state.statistic : 'median', chartWidth, isModified, id, theme)}</g>`);
     write(counts(current), x + 72, 282 + CHART_HEIGHT + 24, 16, muted);
   }
   let cursor = 282 + CHART_HEIGHT + 54;
@@ -50,7 +50,7 @@ export function comparisonSvg(state: State, theme: Theme = 'light'): string {
   }
   pieces.push(`<rect x="${margin}" y="${cursor}" width="${width - margin * 2}" height="80" rx="8" fill="#ff541a"/>`);
   write(`Modified Y-axis: ${rangeLabel(state, dataset.unit)}`, margin + 22, cursor + 33, 20, '#17212b', 650);
-  write(`Guide: ${state.statistic === 'mean' ? 'Mean' : 'Median'} · Hide outliers: ${state.hideOutliers ? 'on' : 'off'}`, margin + 22, cursor + 61, 18, '#17212b');
+  write(`Reference guide: Median · Modified guide: ${state.statistic === 'mean' ? 'Mean' : 'Median'} · Hide outliers: ${state.hideOutliers ? 'on' : 'off'}`, margin + 22, cursor + 61, 18, '#17212b');
   cursor += 125;
   write(`Mean  ${amount(modified.stats.mean, dataset.unit)}`, margin, cursor, 24, ink, 650);
   write(`Median  ${amount(modified.stats.median, dataset.unit)}`, rightX, cursor, 24, ink, 650);
