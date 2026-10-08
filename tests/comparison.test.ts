@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chartSvg, geometry } from '../src/chart.ts';
 import { comparisonSvg } from '../src/export.ts';
+import { EXPERIMENTS, experimentState } from '../src/discovery.ts';
 import { DATASETS, axisNotice, explanation, focusedRange, getDataset, median, resetState, statistics, validateRange, view } from '../src/model.ts';
 
 test('known datasets have independently calculated means, medians, quartiles and outlier counts', () => {
@@ -127,5 +128,60 @@ test('all presets and empty-range exports produce finite geometry and retain eve
       const payload = JSON.parse(metadata);
       assert.deepEqual(payload.observations, dataset.observations);
     }
+  }
+});
+
+test('each discovery reveals one change and keeps every source value in its calculations', () => {
+  for (const experiment of EXPERIMENTS) {
+    const before = experimentState(experiment), after = experimentState(experiment, true);
+    const dataset = getDataset(after.datasetId);
+    const baseline = view(dataset, before, before.hideOutliers);
+    const revealed = view(dataset, after, after.hideOutliers);
+    assert.deepEqual(revealed.stats, baseline.stats);
+    if (experiment.id === 'scale') {
+      assert.notEqual(after.lower, before.lower);
+      assert.equal(after.hideOutliers, before.hideOutliers);
+      assert.equal(after.statistic, before.statistic);
+      assert.equal(revealed.shown, baseline.shown);
+    } else {
+      assert.equal(after.lower, before.lower);
+      assert.equal(after.upper, before.upper);
+      if (experiment.id === 'visibility') {
+        assert.equal(after.statistic, before.statistic);
+        assert.equal(revealed.hidden, 1);
+        assert.equal(revealed.clipped, 0);
+      } else {
+        assert.equal(after.hideOutliers, before.hideOutliers);
+        assert.notEqual(after.statistic, before.statistic);
+        assert.deepEqual(revealed.statuses, baseline.statuses);
+      }
+    }
+  }
+});
+
+test('average comparison and export keep the reference median while the modified calculation changes', () => {
+  const state = experimentState(EXPERIMENTS.find(experiment => experiment.id === 'average')!, true);
+  const exported = comparisonSvg(state);
+  const reference = exported.split('<g transform="translate(56 282)">')[1]!.split('</g>')[0]!;
+  const modified = exported.split('<g transform="translate(740 282)">')[1]!.split('</g>')[0]!;
+  assert.match(reference, /data-statistic="median" data-value="28.5"/);
+  assert.match(modified, /data-statistic="mean" data-value="46.875"/);
+  assert.match(explanation(state).message, /Only the guide changes/);
+  assert.equal((reference.match(/<circle data-observation=/g) ?? []).length, 8);
+  assert.equal((modified.match(/<circle data-observation=/g) ?? []).length, 8);
+});
+
+test('compact chart guide labels avoid markers and the x-axis label', () => {
+  const dataset = getDataset('large-order');
+  for (const height of [168, 211, 216, 300, 340]) {
+    const svg = chartSvg(dataset, view(dataset, dataset.focus, false), 'mean', 320, true, 'light', height);
+    const guideY = Number(svg.match(/<text[^>]*y="([\d.]+)"[^>]*>Mean 46\.88 EUR is above this range<\/text>/)![1]);
+    const axisY = Number(svg.match(/<text[^>]*y="([\d.]+)"[^>]*>Order<\/text>/)![1]);
+    assert.ok(guideY - axisY >= 16, 'Guide and axis labels overlap at height ' + height);
+    const median = chartSvg(dataset, view(dataset, dataset.reference, true), 'median', 320, true, 'light', height);
+    const medianY = Number(median.match(/<text[^>]*y="([\d.]+)"[^>]*>Median 28\.50 EUR<\/text>/)![1]);
+    const markerBottom = Math.max(...[...median.matchAll(/<circle[^>]*cy="([\d.]+)"/g)].map(match => Number(match[1]) + 4.5));
+    assert.ok(medianY - 14 > markerBottom, 'In-range guide label crosses markers at height ' + height);
+    assert.ok(medianY - axisY >= 16, 'In-range guide and axis labels overlap at height ' + height);
   }
 });
