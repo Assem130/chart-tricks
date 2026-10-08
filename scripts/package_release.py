@@ -12,8 +12,8 @@ if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?", VERSION):
     raise ValueError("Package version must be a safe semantic version.")
 SOURCE_FILES = (
     "index.html", "package.json", "package-lock.json", "tsconfig.json",
-    "vite.config.js", "README.md", ".gitignore", ".gitattributes", ".node-version",
-    "src/main.ts", "src/model.ts", "src/chart.ts", "src/export.ts", "src/theme.ts", "src/style.css",
+    "vite.config.js", "README.md", "docs/verification.md", ".gitignore", ".gitattributes", ".node-version",
+    "src/main.ts", "src/model.ts", "src/chart.ts", "src/export.ts", "src/theme.ts", "src/discovery.ts", "src/style.css",
     "public/favicon.svg", "tests/comparison.test.ts", "tests/theme.test.ts",
     "scripts/package_release.py", ".github/workflows/pages.yml", "docs/media/desktop-light.png", "docs/media/desktop-dark.png",
 )
