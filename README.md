@@ -1,42 +1,44 @@
 # Chart Tricks
 
-**Same data, different impression.**
+**Same data. Different story.**
 
-Change a chart's range, choose a mean or median guide, and hide flagged points. Compare each view with the unchanged reference.
+Read a chart, choose your first impression, then reveal how a small presentation change alters the picture. Three experiments teach zooming, hiding a point, and choosing an average. Explore freely when you want to make your own comparison.
+
+Version 1.1.0 adds guided discovery, focused controls and a phone layout that keeps the chart beside each change.
 
 [Open the demo](https://assem130.github.io/chart-tricks/) · [Run locally](#run-locally) · [Data and rules](#data-and-rules) · [Release packages](https://github.com/Assem130/chart-tricks/releases/latest)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/desktop-dark.png">
-  <img alt="Chart Tricks compares the same cafe values on a full reference scale and a tighter modified scale" src="docs/media/desktop-light.png">
+  <img alt="Chart Tricks invites you to interpret cafe revenue before revealing the scale trick" src="docs/media/desktop-light.png">
 </picture>
 
 **Every statistic uses every source value, including points you hide.**
 
-## Try one comparison
+## Discover the difference
 
-1. Choose **One large order**.
-2. Select **Mean**.
-3. Enable **Hide outliers**.
+1. Start with **The scale**. Read the cafe chart and choose an impression.
+2. Select **Reveal the scale trick**. The rise looks steeper, but January to June still grows by **7.3%**.
+3. Continue to **The missing point** and **The average**. Each changes one thing while the source values stay fixed.
 
-Seven points remain visible. The mean stays **46.88 EUR** and the median stays **28.50 EUR** because both include all eight orders.
-
-The hidden **180 EUR** order still affects the mean. The chart names that point and shows that the mean lies above the modified range.
+There is no score. You can reveal without selecting an answer, or enter **Explore freely** immediately. The Reference keeps its original range, every value and a median guide. On phones, Reference and Modified share a chart slot; the active chart and facts stay beside the control.
 
 ## Change the view
 
 | Control | What changes |
 | --- | --- |
-| Axis bounds and Scale focus | Adjust the Modified range. The Reference keeps its full range. |
-| Mean or Median | Choose the guide in both charts. Both summary values remain visible. |
-| Hide outliers | Hide flagged markers in Modified. Counts and explanations disclose each hidden value. |
+| Zoom and exact axis bounds | Adjust the Modified range. Outside points get direction triangles and clipped counts. |
+| Mean or Median | Choose the Modified guide. The Reference keeps its median. Both summary values stay visible. |
+| Hide the outlier | Remove flagged markers in Modified. Counts and labels disclose hidden values. |
 | Theme | Choose System, Light, or Dark. The browser saves your choice locally. |
-| Reset | Keep the dataset and theme. Restore the tighter range, Median, and visible outliers. |
+| Reset | Restart the current discovery question, or restore the current dataset's exploration preset. Keep the theme. |
 | Export image | Download both charts as a labelled, 2880-pixel-wide PNG in the current theme. |
 
-The PNG includes ranges, units, summaries, visibility counts, explanations, the outlier rule, and exact source values. It uses a readable comparison layout.
+In exploration, choose **One large order**, open **Average**, select **Mean**, then open **Points** and enable **Hide the outlier**. Seven markers remain. Mean stays **46.88 EUR** and median stays **28.50 EUR** because both include all eight orders, including the hidden **180 EUR** order.
 
-A tighter axis can reveal small differences and make them look larger. Hiding a flagged point can reveal a cluster and obscure part of the distribution. Compare the stated ranges and disclosures before interpreting either view. An outlier flag does not establish that a value is wrong.
+The PNG includes ranges, units, summaries, visibility counts, explanations, the outlier rule and exact source values. Hidden and clipped points remain separate. Export captures the view when you select it.
+
+A tighter axis reveals detail and can make differences look larger. Hiding a flagged point obscures part of the distribution. A mean answers a different question from a median. Read the ranges and disclosures before interpreting the picture. An outlier flag does not establish that a value is wrong.
 
 ## Run locally
 
@@ -77,7 +79,7 @@ Both charts use linear scales and the same observation order. Only monthly reven
 <details>
 <summary>Exact source values and axis ranges</summary>
 
-The values also appear in [`src/model.ts`](src/model.ts) and the app's **Source data & statistical rules** section.
+The values also appear in [`src/model.ts`](src/model.ts) and the app's **Behind the chart** section.
 
 | Dataset | Source values | Reference range | Reset range |
 | --- | --- | --- | --- |
@@ -102,9 +104,9 @@ The values also appear in [`src/model.ts`](src/model.ts) and the app's **Source 
 <details>
 <summary>Custom ranges and saved state</summary>
 
-Scale focus moves between the full reference range and the tighter preset. Custom bounds accept finite values from −1,000,000 to 1,000,000, with a minimum span of 0.01.
+Zoom moves between the full reference range and the tighter preset. Custom bounds accept finite values from −1,000,000 to 1,000,000, with a minimum span of 0.01.
 
-Invalid fields keep the last valid chart and disable export until you correct them. Changing the dataset starts its preset. Reloading starts Cafe revenue and keeps only the saved theme preference.
+Invalid fields keep the last valid chart and disable export until you correct them. Changing the dataset starts its preset. Reloading starts the first discovery question and keeps only the saved theme preference.
 
 System follows the browser's appearance setting. Reset preserves the current theme. Storage restrictions do not prevent manual theme selection.
 
@@ -112,11 +114,11 @@ System follows the browser's appearance setting. Reset preserves the current the
 
 ## Checks and limits
 
-The 16 behavior checks cover statistics, quartiles, visibility, scale transformations, range validation, reset, themes, and export content. Theme checks also cover chart contrast and identical data, statistics, and coordinates.
+The 19 behavior checks cover statistics, quartiles, visibility, scale transformations, range validation, reset, themes, one-factor discovery, compact-chart labels and export content. Theme checks also cover chart contrast and identical data, statistics, and coordinates.
 
-Chromium checks cover desktop and narrow mobile layouts, interactions, saved themes, and actual PNG downloads. Independent pixel checks compare exported point positions and check hidden-point absence.
+Chromium checks cover the production build at desktop and 390/320-pixel phone sizes, keyboard controls, reset, invalid bounds, live System appearance, saved themes and actual PNG downloads. Independent checks verify 219 data and presentation cases. Pixel checks verify downloaded point positions, clipped triangles and hidden-point absence. See [the local discovery verification record](docs/verification.md) for evidence and limits.
 
-Physical phones, Safari, Firefox, and screen reader sessions remain untested. Browser download permissions can affect file delivery. These small examples illustrate presentation choices, not inference, uncertainty, or causation. Other quartile conventions can produce different outlier fences. The app supports only linear scales.
+Physical phones, Safari, Firefox and screen reader sessions remain untested. The available Android emulator was in use by another session, so it was not driven. iOS Simulator requires macOS and was unavailable. Browser download permissions can affect file delivery. These small examples illustrate presentation choices, not inference, uncertainty, or causation. Other quartile conventions can produce different outlier fences. The app supports only linear scales.
 
 ## Host a static build
 

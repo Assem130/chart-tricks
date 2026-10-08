@@ -14,87 +14,121 @@
       document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#101820' : '#ffffff';
     })();
   </script>
-  <meta name="description" content="Same data, different impression. Explore axis ranges, mean versus median, and outlier visibility in a small interactive chart experiment." />
+  <meta name="description" content="Read a chart. Pick an impression. Reveal the trick. Three small experiments show how the same data can tell a different visual story." />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <title>Chart Tricks · Same data, different impression</title>
+  <title>Chart Tricks · Same data, different story</title>
 </head>
 <body>
-  <a class="skip-link" href="#comparison">Skip to the comparison</a>
-  <main class="app">
+  <a class="skip-link" href="#workspace">Skip to the chart</a>
+  <main class="app" id="app" data-mode="discover" data-stage="question" data-mobile-view="modified">
     <header class="topbar">
-      <h1>Chart <span>Tricks</span></h1>
-      <div class="dataset-control">
-        <label for="dataset">Dataset</label>
-        <select id="dataset" name="dataset"></select>
-        <span class="provenance">Synthetic data</span>
-      </div>
-      <div class="actions">
-        <label class="theme-control" for="theme">Theme
-          <select id="theme" name="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
-        </label>
-        <button id="reset" type="button" title="Restore this dataset's comparison preset">Reset</button>
-        <button id="export" class="primary" type="button">Export image</button>
-      </div>
+      <a class="wordmark" href="./" aria-label="Chart Tricks home">
+        <svg class="brand-mark" width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><path d="M4 27V7M4 27h28" fill="none" stroke="currentColor" stroke-width="2"/><path d="m9 21 7-1 7-1 7-2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m9 23 7-4 7-5 7-8" fill="none" stroke="var(--orange)" stroke-width="2.5"/></svg>
+        <span>Chart <span class="brand-accent">Tricks</span><span class="brand-period">.</span></span>
+      </a>
+      <nav class="mode-switch" aria-label="Experience">
+        <button id="discover-mode" class="text-button" type="button" aria-pressed="true">Discover</button>
+        <button id="explore-mode" class="text-button" type="button" aria-pressed="false">Explore freely <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16 16 4M5 4h11v11" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+      </nav>
+      <label class="theme-control" for="theme"><span class="sr-only">Theme</span>
+        <select id="theme" name="theme"><option value="system">System theme</option><option value="light">Light theme</option><option value="dark">Dark theme</option></select>
+      </label>
     </header>
-    <p class="pattern" id="pattern"></p>
-    <section class="comparison" id="comparison" aria-label="Reference and modified comparison">
-      <article class="chart-panel">
-        <p class="impression" id="reference-headline"></p>
-        <div class="chart-heading"><h2>Reference</h2><span class="fixed-tag">Fixed scale</span></div>
-        <p class="axis-note" id="reference-range"></p>
-        <div class="chart" id="reference-chart"></div>
-        <p class="point-count" id="reference-count"></p>
-      </article>
-      <article class="chart-panel">
-        <p class="impression" id="modified-headline"></p>
-        <div class="chart-heading"><h2>Modified</h2><span class="axis-tag" id="axis-notice"></span></div>
-        <p class="axis-note" id="modified-range"></p>
-        <div class="chart" id="modified-chart"></div>
-        <p class="point-count" id="modified-count"></p>
-        <p class="visibility-note" id="visibility-note" hidden></p>
-      </article>
+
+    <section class="masthead" aria-labelledby="page-title">
+      <h1 id="page-title">Same data.<br /><span>Different story.</span></h1>
+      <p id="intro">Read the chart. Pick an impression. <br />Then see what a small change can do.</p>
+      <svg class="story-mark" viewBox="0 0 160 100" aria-hidden="true"><path d="M8 84h144M8 84V10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 66 24-2 24 1 24-4 24-1 32-4" fill="none" stroke="currentColor" stroke-width="3"/><path d="m16 72 24-12 24 6 24-18 24-8 32-24" fill="none" stroke="var(--orange)" stroke-width="3"/><circle cx="144" cy="16" r="5" fill="var(--orange)"/></svg>
     </section>
-    <section class="controls" aria-labelledby="controls-title">
-      <div class="control-row">
-        <h2 id="controls-title">Modified Y-axis <span id="axis-unit"></span></h2>
-        <label class="bound-control" for="lower">Lower <input id="lower" name="lower" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label>
-        <label class="bound-control" for="upper">Upper <input id="upper" name="upper" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label>
-        <fieldset class="statistic-control">
-          <legend>Statistic in both charts</legend>
-          <div class="segmented">
-            <label><input name="statistic" type="radio" value="mean" /><span>Mean</span></label>
-            <label><input name="statistic" type="radio" value="median" checked /><span>Median</span></label>
+
+    <nav id="experiment-nav" class="experiment-nav" aria-label="Three chart experiments"></nav>
+    <div class="explore-heading" id="explore-heading" hidden>
+      <label for="dataset">Try a dataset <select id="dataset" name="dataset"></select></label>
+      <p>Change the view. Keep the values.</p>
+    </div>
+
+    <section class="workbench" aria-label="Chart experiment">
+      <div class="workspace" id="workspace" tabindex="-1">
+        <div class="chart-stage" id="chart-stage">
+          <div class="dataset-heading"><h2 id="dataset-name"></h2><span id="provenance"></span></div>
+          <div id="mobile-comparison" class="mobile-comparison" role="group" aria-label="Chart view" hidden>
+            <button id="show-reference" type="button" aria-pressed="false">Reference</button>
+            <button id="show-modified" type="button" aria-pressed="true">Modified</button>
           </div>
-        </fieldset>
+          <div class="comparison" id="comparison">
+            <article class="chart-panel reference-panel" aria-labelledby="reference-title">
+              <div class="chart-heading"><h3 id="reference-title">Your first look</h3><span id="reference-guide" class="guide-label"></span></div>
+              <p id="reference-range" class="axis-note"></p>
+              <div class="chart" id="reference-chart"></div>
+              <p class="point-count" id="reference-count"></p>
+            </article>
+            <article class="chart-panel modified-panel" aria-labelledby="modified-title" hidden>
+              <div class="chart-heading"><h3 id="modified-title">Modified</h3><span id="axis-notice" class="axis-tag"></span></div>
+              <p id="modified-range" class="axis-note"></p>
+              <div class="chart" id="modified-chart"></div>
+              <p class="point-count" id="modified-count"></p>
+              <p class="visibility-note" id="visibility-note" hidden></p>
+            </article>
+          </div>
+          <div class="facts" id="facts" hidden>
+            <p id="dataset-fact"></p>
+            <div class="statistics"><span>Mean <strong id="mean-value"></strong></span><span>Median <strong id="median-value"></strong></span></div>
+            <p id="all-values" class="all-values"></p>
+          </div>
+        </div>
+
+        <aside class="prompt-pane" id="prompt-pane">
+          <h2 id="question"></h2>
+          <p id="question-context"></p>
+          <fieldset class="answers"><legend>Your first impression</legend><div id="answer-options"></div></fieldset>
+          <button id="reveal" class="primary reveal-button" type="button"><span id="reveal-label"></span><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <p class="no-score">No score. Just a chance to notice.</p>
+        </aside>
+
+        <section class="controls" id="controls" aria-label="Change the modified chart" hidden>
+          <nav class="operation-nav" id="operation-nav" aria-label="Presentation control" hidden>
+            <button type="button" data-operation="scale" aria-pressed="true">Scale</button><button type="button" data-operation="visibility" aria-pressed="false">Points</button><button type="button" data-operation="average" aria-pressed="false">Average</button>
+          </nav>
+          <div class="control-content">
+            <div id="scale-controls" class="control-pane">
+              <div class="control-heading"><label for="focus">Zoom <output id="focus-value" for="focus"></output></label><span id="scale-effect"></span></div>
+              <div class="focus-row"><span>Full range</span><input id="focus" name="focus" type="range" min="0" max="100" step="1" value="0" aria-describedby="focus-help" /><span>Tighter range</span></div>
+              <p class="control-help" id="focus-help">Zoom changes the axis, not the values. Points outside it are clipped, not hidden.</p>
+              <details id="custom-range" class="custom-range"><summary>Set exact bounds <span id="axis-unit"></span></summary>
+                <div class="bounds"><label for="lower">Lower<input id="lower" name="lower" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label><label for="upper">Upper<input id="upper" name="upper" type="number" step="any" min="-1000000" max="1000000" inputmode="decimal" autocomplete="off" aria-describedby="range-error" /></label></div>
+              </details>
+            </div>
+            <div id="visibility-controls" class="control-pane" hidden>
+              <div class="control-heading"><label class="hide-control" for="hide-outliers"><input id="hide-outliers" name="hide-outliers" type="checkbox" />Hide the outlier</label><span id="outlier-count"></span></div>
+              <p class="control-help" id="outlier-help">Hiding removes a marker. It does not change the axis or either average.</p>
+            </div>
+            <div id="average-controls" class="control-pane" hidden>
+              <fieldset class="statistic-control"><legend>Choose the calculation</legend><div class="segmented"><label><input name="statistic" type="radio" value="median" checked /><span>Median</span></label><label><input name="statistic" type="radio" value="mean" /><span>Mean</span></label></div></fieldset>
+              <p class="control-help">The Reference keeps its median. Modified uses your choice. Both include every value.</p>
+            </div>
+          </div>
+          <p id="range-error" class="range-error" role="status" hidden></p>
+        </section>
       </div>
-      <div class="focus-row">
-        <label for="focus">Scale focus <output id="focus-value" for="focus"></output></label>
-        <span class="focus-end">Full range</span>
-        <input id="focus" name="focus" type="range" min="0" max="100" value="100" aria-describedby="focus-help" />
-        <span class="focus-end">Tighter range</span>
-      </div>
-      <span class="sr-only" id="focus-help">Adjusts the modified bounds between this dataset's full-range and tighter-range presets. Numeric fields allow custom bounds.</span>
-      <p id="range-error" class="range-error" role="status" hidden></p>
+
+      <section class="insight" id="insight" aria-labelledby="takeaway" hidden>
+        <div class="insight-copy"><p id="impression-note" class="impression-note" hidden></p><h2 id="takeaway" tabindex="-1"></h2><p id="lesson"></p><p id="explanation" class="live-explanation"></p><p id="statistic-explanation" class="statistic-explanation"></p></div>
+        <div class="insight-next"><button id="next-experiment" class="next-button" type="button"></button><button id="keep-exploring" class="text-button" type="button">Keep exploring freely</button></div>
+      </section>
+      <div class="workbench-actions"><span id="state-note">All values are illustrative.</span><div><button id="reset" type="button">Reset</button><button id="export" class="export-button" type="button" disabled><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m-4-4 4 4 4-4M3 13v4h14v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Export image</button></div></div>
+      <p id="export-status" class="export-status" role="status" hidden></p>
     </section>
-    <section class="summary" aria-label="Visibility and all-data statistics">
-      <div class="outlier-control">
-        <label for="hide-outliers"><input id="hide-outliers" name="hide-outliers" type="checkbox" />Hide outliers</label>
-        <span id="outlier-count"></span>
-      </div>
-      <div class="statistics"><div><span>Mean</span><strong id="mean-value"></strong></div><div><span>Median</span><strong id="median-value"></strong></div><p id="all-values"></p></div>
-    </section>
-    <section class="explanation" aria-label="What changed" aria-live="polite" aria-atomic="true">
-      <p id="explanation"></p><p class="statistic-explanation" id="statistic-explanation"></p>
-    </section>
-    <p id="export-status" class="export-status" role="status" hidden></p>
-    <details class="source">
-      <summary>Source data &amp; statistical rules</summary>
+
+    <details class="source" id="source">
+      <summary>Behind the chart <span>Source values &amp; statistical rules</span><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="m4 7 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></summary>
       <div class="source-content">
-        <div><h2>The unchanged data</h2><p>These small datasets were written for this demonstration. They do not describe a real cafe, shop or survey.</p><table><caption id="source-caption"></caption><thead><tr><th scope="col" id="source-label">Observation</th><th scope="col" id="source-unit">Value</th><th scope="col">Outlier</th></tr></thead><tbody id="source-data"></tbody></table></div>
-        <div class="rules"><h2>How the statistics work</h2><p>Mean adds all values and divides by the count. Median is the middle sorted value, or the average of the two middle values.</p><p>Outliers fall strictly below Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR. Q1 and Q3 are medians of the lower and upper halves. For odd counts, the middle value is excluded from both halves.</p><p id="quartile-values"></p><p>Hiding a point changes only its visibility. Bounds can clip points. Neither operation changes the data, quartiles, mean or median.</p><p>All scales are linear. Only monthly revenue points are connected; orders and survey groups have no implied time trend.</p></div>
+        <div><h2>The unchanged data</h2><p>These datasets were written for this demonstration. They do not describe a real cafe, shop or survey.</p><table><caption id="source-caption"></caption><thead><tr><th scope="col" id="source-label">Observation</th><th scope="col" id="source-unit">Value</th><th scope="col">Outlier</th><th scope="col">Modified</th></tr></thead><tbody id="source-data"></tbody></table></div>
+        <div class="rules"><h2>Three different changes</h2><p><strong>Zoom:</strong> change the range on the axis. A triangle marks a value outside it. The value is clipped, not deleted.</p><p><strong>Hide:</strong> remove a flagged marker from view. Its value still contributes to every statistic.</p><p><strong>Calculate:</strong> mean adds all values and divides by the count. Median is the middle sorted value, or the average of the two middle values.</p><p>Outliers fall strictly below Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR. Q1 and Q3 are medians of the lower and upper halves. For odd counts, exclude the middle value from both halves.</p><p id="quartile-values"></p><p>All scales are linear. Only monthly revenue points are connected. Orders and survey groups have no implied time trend.</p></div>
       </div>
     </details>
-    <footer>Same values. Different view. <span>Made to explore, not to prove a claim.</span></footer>
+    <footer><span>Look twice. Read the axis.</span><span>Chart Tricks · Made for curious eyes.</span></footer>
+    <p class="sr-only" id="live-status" role="status" aria-atomic="true"></p>
+    <noscript><p>Enable JavaScript to explore the charts. All three datasets are synthetic examples.</p></noscript>
   </main>
   <script type="module" src="./src/main.ts"></script>
 </body>
